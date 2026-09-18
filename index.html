@@ -105,7 +105,6 @@
   <g stroke="var(--wire)" stroke-width="3">
     <line x1="22" y1="128" x2="58" y2="128"/>
     <line x1="32" y1="145" x2="48" y2="145"/>
-    <line x1="22" y1="172" x2="58" y2="172" stroke="var(--panel)"/>
     <line x1="40" y1="145" x2="40" y2="185"/>
   </g>
   <text x="66" y="124" class="lbl" font-size="15" fill="var(--ink)">+</text>
@@ -128,12 +127,12 @@
   <text x="420" y="38" font-size="14" fill="var(--ink)" id="lblR3">R₃ = 324 Ω</text>
   <text x="342" y="132" font-size="14" fill="var(--ink)" id="lblR2">R₂ = 97 Ω</text>
   <!-- corrientes -->
-  <text x="120" y="92" font-size="14" fill="var(--accent)" id="lblI1">I₁</text>
-  <text x="430" y="92" font-size="14" fill="var(--accent)" id="lblI3">I₃</text>
-  <text x="228" y="150" font-size="14" fill="var(--accent)" id="lblI2">I₂</text>
-  <path id="arrI1" d="M100 80 h40" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
-  <path id="arrI3" d="M400 80 h40" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
-  <path id="arrI2" d="M280 120 v40" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
+  <text x="148" y="86" font-size="14" fill="var(--accent)" id="lblI1">I₁</text>
+  <text x="448" y="86" font-size="14" fill="var(--accent)" id="lblI3">I₃</text>
+  <text x="268" y="146" font-size="14" fill="var(--accent)" text-anchor="end" id="lblI2">I₂</text>
+  <path id="arrI1" d="M104 80 h36" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
+  <path id="arrI3" d="M404 80 h36" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
+  <path id="arrI2" d="M280 122 v36" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
   <defs>
     <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/>
@@ -218,9 +217,9 @@
     $('lblI2').textContent = 'I₂ = '+mA(I2);
     $('lblI3').textContent = 'I₃ = '+mA(I3);
     // si una corriente sale negativa, el sentido real es el opuesto al dibujado
-    flip('arrI1', I1<0, 'M100 80 h40', 'M140 80 h-40');
-    flip('arrI2', I2<0, 'M280 120 v40', 'M280 160 v-40');
-    flip('arrI3', I3<0, 'M400 80 h40', 'M440 80 h-40');
+    flip('arrI1', I1<0, 'M104 80 h36', 'M140 80 h-36');
+    flip('arrI2', I2<0, 'M280 122 v36', 'M280 158 v-36');
+    flip('arrI3', I3<0, 'M404 80 h36', 'M440 80 h-36');
 
     $('b2top').textContent = inv ? '−' : '+';
     $('b2bot').textContent = inv ? '+' : '−';
