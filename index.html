@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TP2 - Circuito de dos mallas</title>
+<style>
+  :root{
+    --bg:#f7f7f5; --panel:#ffffff; --ink:#1b1b19; --muted:#6b6b66;
+    --line:#d8d8d2; --wire:#1b1b19; --accent:#1f5f8b; --accent2:#a33a2a;
+    --chip:#eeeeea;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#17181a; --panel:#1f2124; --ink:#ececea; --muted:#a0a09b;
+      --line:#3a3c40; --wire:#ececea; --accent:#7ab6e0; --accent2:#e08a78;
+      --chip:#2a2c30;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#17181a; --panel:#1f2124; --ink:#ececea; --muted:#a0a09b;
+    --line:#3a3c40; --wire:#ececea; --accent:#7ab6e0; --accent2:#e08a78;
+    --chip:#2a2c30;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:24px 18px 60px}
+  header{border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:22px}
+  h1{font-size:1.5rem; margin:0 0 4px}
+  .sub{color:var(--muted); font-size:.92rem}
+  h2{font-size:1.05rem; margin:26px 0 10px; letter-spacing:.02em}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px}
+  .grid{display:flex; flex-wrap:wrap; gap:12px}
+  .field{flex:1 1 130px; min-width:120px}
+  label{display:block; font-size:.8rem; color:var(--muted); margin-bottom:4px}
+  input[type=number]{
+    width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px;
+    background:var(--bg); color:var(--ink); font:inherit; font-size:.95rem;
+  }
+  .toggle{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+  .toggle button{
+    flex:1 1 180px; padding:9px 12px; border:1px solid var(--line); border-radius:7px;
+    background:var(--bg); color:var(--ink); font:inherit; font-size:.9rem; cursor:pointer;
+  }
+  .toggle button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+  .figure{overflow-x:auto; margin:18px 0 6px}
+  svg{display:block; margin:0 auto; max-width:100%; height:auto}
+  .cap{text-align:center; font-style:italic; font-size:.85rem; color:var(--muted)}
+  table{width:100%; border-collapse:collapse; font-size:.9rem}
+  th,td{border:1px solid var(--line); padding:7px 8px; text-align:center}
+  th{background:var(--chip); font-weight:600}
+  td.n{font-variant-numeric:tabular-nums}
+  .note{font-size:.85rem; color:var(--muted); margin-top:10px}
+  .eq{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.85rem;
+      background:var(--chip); padding:10px 12px; border-radius:7px; overflow-x:auto; white-space:pre}
+  .flag{color:var(--accent2)}
+  footer{margin-top:34px; border-top:1px solid var(--line); padding-top:12px; font-size:.82rem; color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Circuito de dos mallas - TP2</h1>
+  <div class="sub">Física III - ITBA. Resolución automática por leyes de Kirchhoff. Los valores se pueden editar.</div>
+</header>
+
+<div class="panel">
+  <div class="grid">
+    <div class="field"><label for="r1">R₁ (Ω)</label><input id="r1" type="number" step="any" value="217"></div>
+    <div class="field"><label for="r2">R₂ (Ω)</label><input id="r2" type="number" step="any" value="97"></div>
+    <div class="field"><label for="r3">R₃ (Ω)</label><input id="r3" type="number" step="any" value="324"></div>
+    <div class="field"><label for="e1">ε₁ (V)</label><input id="e1" type="number" step="any" value="9"></div>
+    <div class="field"><label for="e2">ε₂ (V)</label><input id="e2" type="number" step="any" value="1.5"></div>
+  </div>
+  <div class="toggle">
+    <button id="bOrig" aria-pressed="true">Circuito original</button>
+    <button id="bInv" aria-pressed="false">Fuente ε₂ invertida</button>
+  </div>
+</div>
+
+<div class="figure">
+<svg viewBox="0 0 640 300" role="img" aria-label="Esquema del circuito">
+  <g stroke="var(--wire)" stroke-width="3" fill="none" stroke-linecap="square">
+    <!-- rama izquierda -->
+    <path d="M40 60 H140"/><path d="M200 60 H320"/>
+    <path d="M40 60 V115"/><path d="M40 185 V240"/>
+    <path d="M40 240 H600"/>
+    <!-- rama central -->
+    <path d="M320 60 V115"/><path d="M320 185 V240"/>
+    <!-- rama derecha -->
+    <path d="M320 60 H420"/><path d="M480 60 H600"/>
+    <path d="M600 60 V115"/><path d="M600 185 V240"/>
+  </g>
+  <!-- resistor R1 -->
+  <polyline points="140,60 148,48 164,72 180,48 196,72 200,60" fill="none" stroke="var(--wire)" stroke-width="3"/>
+  <!-- resistor R3 -->
+  <polyline points="420,60 428,48 444,72 460,48 476,72 480,60" fill="none" stroke="var(--wire)" stroke-width="3"/>
+  <!-- resistor R2 (vertical) -->
+  <polyline points="320,115 308,123 332,139 308,155 332,171 320,179" fill="none" stroke="var(--wire)" stroke-width="3"/>
+  <!-- pila 1 -->
+  <g stroke="var(--wire)" stroke-width="3">
+    <line x1="22" y1="128" x2="58" y2="128"/>
+    <line x1="32" y1="145" x2="48" y2="145"/>
+    <line x1="22" y1="172" x2="58" y2="172" stroke="var(--panel)"/>
+    <line x1="40" y1="145" x2="40" y2="185"/>
+  </g>
+  <text x="66" y="124" class="lbl" font-size="15" fill="var(--ink)">+</text>
+  <text x="66" y="152" font-size="15" fill="var(--ink)">−</text>
+  <text x="46" y="205" font-size="14" fill="var(--ink)" id="lblE1">ε₁ = 9 V</text>
+  <!-- pila 2 -->
+  <g id="bat2" stroke="var(--wire)" stroke-width="3">
+    <line id="b2long" x1="582" y1="128" x2="618" y2="128"/>
+    <line id="b2short" x1="592" y1="145" x2="608" y2="145"/>
+    <line x1="600" y1="145" x2="600" y2="185"/>
+  </g>
+  <text x="556" y="124" font-size="15" fill="var(--ink)" id="b2top">+</text>
+  <text x="556" y="152" font-size="15" fill="var(--ink)" id="b2bot">−</text>
+  <text x="520" y="205" font-size="14" fill="var(--ink)" id="lblE2">ε₂ = 1,5 V</text>
+  <!-- nodo a -->
+  <circle cx="320" cy="60" r="5" fill="var(--wire)"/>
+  <text x="328" y="52" font-size="14" fill="var(--ink)">a</text>
+  <!-- etiquetas de componentes -->
+  <text x="140" y="38" font-size="14" fill="var(--ink)" id="lblR1">R₁ = 217 Ω</text>
+  <text x="420" y="38" font-size="14" fill="var(--ink)" id="lblR3">R₃ = 324 Ω</text>
+  <text x="342" y="132" font-size="14" fill="var(--ink)" id="lblR2">R₂ = 97 Ω</text>
+  <!-- corrientes -->
+  <text x="120" y="92" font-size="14" fill="var(--accent)" id="lblI1">I₁</text>
+  <text x="430" y="92" font-size="14" fill="var(--accent)" id="lblI3">I₃</text>
+  <text x="228" y="150" font-size="14" fill="var(--accent)" id="lblI2">I₂</text>
+  <path id="arrI1" d="M100 80 h40" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
+  <path id="arrI3" d="M400 80 h40" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
+  <path id="arrI2" d="M280 120 v40" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+</svg>
+</div>
+<div class="cap" id="cap">Circuito original: las dos fuentes se oponen.</div>
+
+<h2>Resultados</h2>
+<div class="panel">
+  <table>
+    <thead><tr><th>Rama</th><th>Corriente</th><th>Caída de tensión</th><th>Potencia disipada</th></tr></thead>
+    <tbody>
+      <tr><td>R₁</td><td class="n" id="i1"></td><td class="n" id="v1"></td><td class="n" id="p1"></td></tr>
+      <tr><td>R₂</td><td class="n" id="i2"></td><td class="n" id="v2"></td><td class="n" id="p2"></td></tr>
+      <tr><td>R₃</td><td class="n" id="i3"></td><td class="n" id="v3"></td><td class="n" id="p3"></td></tr>
+    </tbody>
+  </table>
+  <p class="note" id="nodo"></p>
+  <table style="margin-top:14px">
+    <thead><tr><th>Fuente</th><th>Potencia</th><th></th></tr></thead>
+    <tbody>
+      <tr><td>ε₁</td><td class="n" id="pe1"></td><td id="se1"></td></tr>
+      <tr><td>ε₂</td><td class="n" id="pe2"></td><td id="se2"></td></tr>
+    </tbody>
+  </table>
+  <p class="note" id="balance"></p>
+</div>
+
+<h2>Cómo se resuelve</h2>
+<div class="panel">
+  <div class="eq" id="ecs"></div>
+  <p class="note">Tomando el nudo inferior como referencia, la tensión del nudo a queda determinada por una sola ecuación, y de ahí salen las tres corrientes. El signo de ε₂ cambia al invertir la fuente.</p>
+</div>
+
+<footer>
+  Página auxiliar del Informe del TP N°2 - Circuitos de corriente continua. Grupo N°2.
+</footer>
+</div>
+
+<script>
+(function(){
+  var inv = false;
+  var $ = function(id){ return document.getElementById(id); };
+  var f1 = function(x,d){ return x.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d}); };
+
+  function calc(){
+    var R1=parseFloat($('r1').value), R2=parseFloat($('r2').value), R3=parseFloat($('r3').value);
+    var E1=parseFloat($('e1').value), E2=parseFloat($('e2').value);
+    if(!(R1>0&&R2>0&&R3>0)||isNaN(E1)||isNaN(E2)) return;
+    var s = inv ? -1 : 1;                 // signo de eps2 (+ arriba => s = +1)
+    var Va = (E1/R1 + s*E2/R3) / (1/R1 + 1/R2 + 1/R3);
+    var I1 = (E1-Va)/R1, I2 = Va/R2, I3 = (Va - s*E2)/R3;
+    var Pd = [I1*I1*R1, I2*I2*R2, I3*I3*R3];
+    var Pe1 = E1*I1;                      // entregada por eps1
+    var Pe2 = -s*E2*I3;                   // >0 entrega, <0 absorbe
+
+    var mA = function(x){ return f1(x*1000,2)+' mA'; };
+    $('i1').textContent = mA(I1); $('i2').textContent = mA(I2); $('i3').textContent = mA(I3);
+    $('v1').textContent = f1(I1*R1,3)+' V';
+    $('v2').textContent = f1(I2*R2,3)+' V';
+    $('v3').textContent = f1(I3*R3,3)+' V';
+    $('p1').textContent = f1(Pd[0]*1000,1)+' mW';
+    $('p2').textContent = f1(Pd[1]*1000,1)+' mW';
+    $('p3').textContent = f1(Pd[2]*1000,1)+' mW';
+    $('pe1').textContent = f1(Math.abs(Pe1)*1000,2)+' mW';
+    $('pe2').textContent = f1(Math.abs(Pe2)*1000,2)+' mW';
+    $('se1').textContent = Pe1>=0 ? 'entrega' : 'absorbe';
+    $('se2').textContent = Pe2>=0 ? 'entrega' : 'absorbe';
+    $('nodo').textContent = 'Ley de los nudos: I₂ + I₃ = '+f1((I2+I3)*1000,2)+' mA = I₁.';
+    $('balance').textContent = 'Balance de energía: potencia neta de las fuentes = '
+      + f1((Pe1+Pe2)*1000,1) + ' mW; potencia disipada en las resistencias = '
+      + f1((Pd[0]+Pd[1]+Pd[2])*1000,1) + ' mW.';
+
+    $('lblR1').textContent = 'R₁ = '+f1(R1,0)+' Ω';
+    $('lblR2').textContent = 'R₂ = '+f1(R2,0)+' Ω';
+    $('lblR3').textContent = 'R₃ = '+f1(R3,0)+' Ω';
+    $('lblE1').textContent = 'ε₁ = '+f1(E1,2)+' V';
+    $('lblE2').textContent = 'ε₂ = '+f1(E2,2)+' V';
+    $('lblI1').textContent = 'I₁ = '+mA(I1);
+    $('lblI2').textContent = 'I₂ = '+mA(I2);
+    $('lblI3').textContent = 'I₃ = '+mA(I3);
+    // si una corriente sale negativa, el sentido real es el opuesto al dibujado
+    flip('arrI1', I1<0, 'M100 80 h40', 'M140 80 h-40');
+    flip('arrI2', I2<0, 'M280 120 v40', 'M280 160 v-40');
+    flip('arrI3', I3<0, 'M400 80 h40', 'M440 80 h-40');
+
+    $('b2top').textContent = inv ? '−' : '+';
+    $('b2bot').textContent = inv ? '+' : '−';
+    $('b2long').setAttribute('x1', inv?592:582); $('b2long').setAttribute('x2', inv?608:618);
+    $('b2short').setAttribute('x1', inv?582:592); $('b2short').setAttribute('x2', inv?618:608);
+    $('cap').textContent = inv
+      ? 'Fuente ε₂ invertida: las dos fuentes impulsan la corriente en el mismo sentido.'
+      : 'Circuito original: las dos fuentes se oponen.';
+
+    $('ecs').textContent =
+      'Nudo a:    I₁ = I₂ + I₃\n' +
+      'Malla 1:   ε₁ − I₁·R₁ − I₂·R₂ = 0\n' +
+      'Malla 2:   I₂·R₂ − I₃·R₃ ' + (inv ? '+' : '−') + ' ε₂ = 0\n\n' +
+      'Vₐ = (ε₁/R₁ ' + (inv ? '−' : '+') + ' ε₂/R₃) / (1/R₁ + 1/R₂ + 1/R₃) = ' + f1(Va,4) + ' V\n' +
+      'I₁ = (ε₁ − Vₐ)/R₁ = ' + mA(I1) + '\n' +
+      'I₂ = Vₐ/R₂ = ' + mA(I2) + '\n' +
+      'I₃ = (Vₐ ' + (inv ? '+' : '−') + ' ε₂)/R₃ = ' + mA(I3);
+  }
+
+  function flip(id, cond, a, b){ $(id).setAttribute('d', cond ? b : a); }
+
+  ['r1','r2','r3','e1','e2'].forEach(function(id){
+    $(id).addEventListener('input', calc);
+  });
+  $('bOrig').addEventListener('click', function(){
+    inv=false; $('bOrig').setAttribute('aria-pressed','true'); $('bInv').setAttribute('aria-pressed','false'); calc();
+  });
+  $('bInv').addEventListener('click', function(){
+    inv=true; $('bInv').setAttribute('aria-pressed','true'); $('bOrig').setAttribute('aria-pressed','false'); calc();
+  });
+  calc();
+})();
+</script>
+</body>
+</html>
