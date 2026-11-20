@@ -35,7 +35,7 @@ h1{font-size:clamp(30px,4.6vw,48px)}h2{font-size:clamp(22px,2.6vw,30px);margin-b
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]) .c1{color:var(--ch1)}:root:not([data-theme=light]) .c2{color:var(--ch2)}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
 .ctl+.ctl{margin-top:16px}.lab{font-size:14px;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
-.lab output{font-weight:500;color:var(--muted);white-space:nowrap}
+.hint{font-size:14px;color:var(--muted);margin:2px 0 8px}#r100[hidden]{display:none}.lab output{font-weight:500;color:var(--muted);white-space:nowrap}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.chips button{white-space:nowrap;padding:6px 4px;font-size:14px}
 button{font:inherit;font-size:15px;min-height:44px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;padding:6px 8px}
 button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -85,11 +85,12 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
         <div class="chips" id="chips"></div>
         <input type="range" id="cR" min="0" max="1000" value="0" aria-label="Capacitancia, escala logarítmica de 10 a 4700 µF"></div>
       <div class="ctl"><div class="lab">Resistencia de carga <output id="rOut"></output></div>
-        <input type="range" id="rR" min="20" max="500" step="1" value="100" aria-label="Resistencia de carga en ohm"></div>
+        <input type="range" id="rR" min="20" max="500" step="1" value="100" aria-label="Resistencia de carga en ohm">
+        <p class="hint">En el TP usamos una carga de 100 Ω en los dos circuitos. Podés mover la barra para explorar cómo cambia la salida con otras cargas: con menos resistencia el capacitor se descarga más rápido y el rizado crece. La comparación con lo medido aparece solo con 100 Ω.</p>
+        <button id="r100" style="padding:6px 14px">Volver a 100 Ω</button></div>
       <div class="ctl" style="display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center">
         <label class="chk"><input type="checkbox" id="showIn" checked> Mostrar la entrada</label>
         <button id="play" aria-pressed="true" style="margin-left:auto;padding:6px 14px">Pausar barrido</button>
-        <button id="reset" style="padding:6px 14px">Valores del TP</button>
       </div>
     </div>
   </div>
@@ -106,7 +107,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
   <div>
     <h2>Comparación con lo medido</h2>
     <div class="fig"><svg id="chart" role="img" aria-label="Rizado pico a pico en función de la capacitancia"></svg></div>
-    <p class="note">Curvas: rizado pico a pico que da el modelo con R = 100 Ω, en función de C (escala logarítmica). Puntos: lo que medimos en el laboratorio. El punto negro es la configuración elegida.</p>
+    <p class="note">Curvas: rizado pico a pico que da el modelo con la carga de 100 Ω, en función de C (escala logarítmica). Puntos: lo que medimos en el laboratorio. El punto negro es la configuración elegida.</p>
     <div id="cmp"></div>
   </div>
 </div></div>
@@ -119,10 +120,9 @@ Diodo cortado:               C·dv/dt = −v/R          (descarga exponencial, �
 
 media onda:     e(t) = 18,3·sin(ωt) − 0,7 V
 onda completa:  e(t) = 18,3·|sin(ωt)| − 1,4 V</div>
-  <details><summary>Qué calcula cada lectura</summary>
+  <h2 style="margin-top:28px">Qué calcula cada lectura</h2>
     <p>El valor medio es el promedio de la salida en un período: es lo que marca el multímetro en escala de continua. El valor eficaz es la raíz del promedio de v². El rizado eficaz sale de V<sub>RMS</sub>² = v̄² + v<sub>rizado,RMS</sub>², y el factor de rizado es r = v<sub>rizado,RMS</sub>/v̄. La fracción de potencia en continua es v̄²/V<sub>RMS</sub>². Sin capacitor y con diodos ideales daría r = 1,21 y 40,5 % en media onda, y r = 0,48 y 81 % en onda completa.</p>
     <p>Con 100 µF el modelo reproduce bien lo medido. Con 220 µF y 2200 µF el rizado medido es mayor que el del modelo con el valor nominal. Es lo esperable si la capacitancia real de esos electrolíticos es menor que la que tienen impresa, por tolerancia y envejecimiento. Probá mover el control de C por debajo del valor nominal y mirá cómo la curva se acerca a los puntos medidos.</p>
-  </details>
 </div></div>
 
 <footer class="band"><div class="wrap">Trabajo Práctico Nº 4 · Circuitos rectificadores · Física III · Grupo Nº 2: Petrikovich, Arecco, Ruijgt, Novillo y Silveyra.</div></footer>
@@ -162,11 +162,11 @@ function setC(c){st.C=c;$('cR').value=C2sl(c);update()}
 $('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setC(+b.dataset.c)});
 $('cR').addEventListener('input',e=>{st.C=sl2C(+e.target.value);update()});
 $('rR').addEventListener('input',e=>{st.R=+e.target.value;update()});
+$('r100').addEventListener('click',()=>{st.R=100;$('rR').value=100;update()});
 $('mHalf').addEventListener('click',()=>{st.full=false;update()});
 $('mFull').addEventListener('click',()=>{st.full=true;update()});
 $('showIn').addEventListener('change',e=>{st.showIn=e.target.checked;drawScope()});
 $('play').addEventListener('click',()=>{st.play=!st.play;$('play').setAttribute('aria-pressed',st.play);$('play').textContent=st.play?'Pausar barrido':'Reanudar barrido';if(st.play){last=0;requestAnimationFrame(loop)}});
-$('reset').addEventListener('click',()=>{st.R=100;$('rR').value=100;setC(0)});
 
 // ---------- osciloscopio ----------
 const cv=$('scr'),ctx=cv.getContext('2d');
@@ -253,7 +253,7 @@ function drawChart(){
 const ro=new ResizeObserver(()=>{drawChart();drawScope()});ro.observe(chart);ro.observe(cv);
 function drawCmp(){
   const m=MEAS[st.full?'full':'half'][st.C];
-  if(!m||st.R!==100){$('cmp').innerHTML=`<p class="note">Para comparar con el laboratorio elegí sin capacitor, 100, 220 o 2200 µF y dejá R = 100 Ω.</p>`;return}
+  if(!m||st.R!==100){$('cmp').innerHTML=`<p class="note">Para comparar con el laboratorio elegí sin capacitor, 100, 220 o 2200 µF, con la carga en 100 Ω.</p>`;return}
   const rows=st.C===0?[['Amplitud cero a pico',res.pp,m.vp,''],['Valor medio',res.mean,m.mean,m.src?'(multímetro)':'']]:[['Rizado pico a pico',res.pp,m.pp,'(cursores)'],['Valor medio',res.mean,m.mean,'('+m.src+')']];
   $('cmp').innerHTML=`<table><thead><tr><th>${st.full?'Onda completa':'Media onda'}, ${st.C?st.C+' µF':'sin capacitor'}</th><th>Modelo</th><th>Medido</th></tr></thead><tbody>`+
     rows.map(([n,a,b,src])=>`<tr><td>${n} <span class="note">${b==null?'':src}</span></td><td>${fmt(a)} V</td><td>${b==null?'sin medición':fmt(b)+' V'}</td></tr>`).join('')+`</tbody></table>`;
@@ -263,7 +263,7 @@ function update(){
   res=run(st.full,st.C,st.R);
   $('mHalf').setAttribute('aria-pressed',!st.full);$('mFull').setAttribute('aria-pressed',st.full);
   for(const b of $('chips').children)b.setAttribute('aria-pressed',+b.dataset.c===st.C);
-  $('cOut').textContent=st.C?st.C+' µF':'sin capacitor';$('rOut').textContent=st.R+' Ω';
+  $('cOut').textContent=st.C?st.C+' µF':'sin capacitor';$('rOut').textContent=st.R+' Ω'+(st.R===100?' (la del TP)':'');$('r100').hidden=st.R===100;
   buildCirc();drawReads();drawScope();drawChart();drawCmp();
 }
 const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
