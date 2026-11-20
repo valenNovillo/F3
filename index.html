@@ -3,255 +3,275 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TP2 - Circuito de dos mallas</title>
+<title>Simulador de rectificadores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700&family=Inter:wght@400;500;600&display=swap">
 <style>
-  :root{
-    --bg:#f7f7f5; --panel:#ffffff; --ink:#1b1b19; --muted:#6b6b66;
-    --line:#d8d8d2; --wire:#1b1b19; --accent:#1f5f8b; --accent2:#a33a2a;
-    --chip:#eeeeea;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --bg:#17181a; --panel:#1f2124; --ink:#ececea; --muted:#a0a09b;
-      --line:#3a3c40; --wire:#ececea; --accent:#7ab6e0; --accent2:#e08a78;
-      --chip:#2a2c30;
-    }
-  }
-  :root[data-theme="dark"]{
-    --bg:#17181a; --panel:#1f2124; --ink:#ececea; --muted:#a0a09b;
-    --line:#3a3c40; --wire:#ececea; --accent:#7ab6e0; --accent2:#e08a78;
-    --chip:#2a2c30;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-    line-height:1.5;
-  }
-  .wrap{max-width:900px; margin:0 auto; padding:24px 18px 60px}
-  header{border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:22px}
-  h1{font-size:1.5rem; margin:0 0 4px}
-  .sub{color:var(--muted); font-size:.92rem}
-  h2{font-size:1.05rem; margin:26px 0 10px; letter-spacing:.02em}
-  .panel{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px}
-  .grid{display:flex; flex-wrap:wrap; gap:12px}
-  .field{flex:1 1 130px; min-width:120px}
-  label{display:block; font-size:.8rem; color:var(--muted); margin-bottom:4px}
-  input[type=number]{
-    width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px;
-    background:var(--bg); color:var(--ink); font:inherit; font-size:.95rem;
-  }
-  .toggle{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
-  .toggle button{
-    flex:1 1 180px; padding:9px 12px; border:1px solid var(--line); border-radius:7px;
-    background:var(--bg); color:var(--ink); font:inherit; font-size:.9rem; cursor:pointer;
-  }
-  .toggle button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
-  .figure{overflow-x:auto; margin:18px 0 6px}
-  svg{display:block; margin:0 auto; max-width:100%; height:auto}
-  .cap{text-align:center; font-style:italic; font-size:.85rem; color:var(--muted)}
-  table{width:100%; border-collapse:collapse; font-size:.9rem}
-  th,td{border:1px solid var(--line); padding:7px 8px; text-align:center}
-  th{background:var(--chip); font-weight:600}
-  td.n{font-variant-numeric:tabular-nums}
-  .note{font-size:.85rem; color:var(--muted); margin-top:10px}
-  .eq{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.85rem;
-      background:var(--chip); padding:10px 12px; border-radius:7px; overflow-x:auto; white-space:pre}
-  .flag{color:var(--accent2)}
-  footer{margin-top:34px; border-top:1px solid var(--line); padding-top:12px; font-size:.82rem; color:var(--muted)}
+/* VOICE: claro y de laboratorio, como una guía de TP bien hecha.
+   IDEA: la mesa del laboratorio: el osciloscopio de dos canales y el tablero del circuito.
+   PICTURE: la pantalla del osciloscopio, grande, con CH1 amarillo (entrada) y CH2 celeste (salida), y el esquema con los diodos que se encienden al conducir.
+   COLOUR and TYPE: blanco de mesada, gris del gabinete, pantalla negra; amarillo y celeste de los canales, rojo de los cables como acento. Inter Tight + Inter.
+   LAYOUT: título, osciloscopio con controles al lado (apilado en celular), lecturas, circuito, comparación con lo medido, modelo. */
+:root{color-scheme:light dark;
+  --bg:light-dark(#f5f5f2,#121417);--ink:light-dark(#16181b,#e9eae6);--muted:light-dark(#5d6168,#a2a6ad);
+  --panel:light-dark(#ffffff,#1b1e22);--line:light-dark(#dcddd8,#30343a);--case:light-dark(#e4e5e0,#262a30);
+  --screen:#07100d;--grid:#1d3a30;--ch1:#f2d20f;--ch2:#37c8f0;--red:#d8352b;--wire:light-dark(#22252a,#d9dad6);
+  --hw:light-dark(#c7322a,#ff7a6e);--fw:light-dark(#0f7a9c,#5fd1f5)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2{font-family:"Inter Tight",Inter,sans-serif;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,4.6vw,48px)}h2{font-size:clamp(22px,2.6vw,30px);margin-bottom:12px}
+.band{padding:clamp(22px,4vw,48px) max(5vw,16px)}.wrap{max-width:1240px;margin:0 auto}
+.sub{color:var(--muted);margin:10px 0 0;max-width:62ch}
+.top{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:22px;align-items:start;margin-top:22px}
+@media(max-width:860px){.top{grid-template-columns:minmax(0,1fr)}}
+.scope{background:var(--case);border-radius:14px;padding:12px;box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 8px 24px rgba(0,0,0,.12)}
+.screen{position:relative;aspect-ratio:10/8;background:var(--screen);border-radius:6px;overflow:hidden}
+.screen canvas{position:absolute;inset:0;width:100%;height:100%}
+.scopebar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:13px;color:var(--muted);padding:8px 2px 0}
+.tag{font-weight:600}.c1{color:#9a8400}.c2{color:#0b84a8}
+:root[data-theme=dark] .c1{color:var(--ch1)}:root[data-theme=dark] .c2{color:var(--ch2)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .c1{color:var(--ch1)}:root:not([data-theme=light]) .c2{color:var(--ch2)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.ctl+.ctl{margin-top:16px}.lab{font-size:14px;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.lab output{font-weight:500;color:var(--muted);white-space:nowrap}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.chips button{white-space:nowrap;padding:6px 4px;font-size:14px}
+button{font:inherit;font-size:15px;min-height:44px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;padding:6px 8px}
+button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ch2);outline-offset:2px}
+input[type=range]{width:100%;height:44px;accent-color:var(--red)}
+.chk{display:flex;align-items:center;gap:8px;font-size:15px;min-height:44px}.chk input{width:20px;height:20px;accent-color:var(--red)}
+.reads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:22px}
+@media(max-width:600px){.reads{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.read{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.read b{display:block;font:600 clamp(24px,3vw,32px)/1.1 "Inter Tight",Inter,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+.read span{font-size:13px;color:var(--muted)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.circ svg{width:100%;height:auto;display:block}
+.state{margin-top:8px;font-size:15px;min-height:3em}
+.fig{position:relative;min-height:320px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+table{width:100%;border-collapse:collapse;font-size:15px;margin-top:10px}th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}th{font-size:13px;color:var(--muted);font-weight:600}
+.note{font-size:14px;color:var(--muted);margin-top:10px}
+details{margin-top:12px}summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center}
+.eq{font-family:ui-monospace,Menlo,monospace;font-size:14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre}
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
+@media(max-width:600px){table{font-size:13px}}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header>
-  <h1>Circuito de dos mallas - TP2</h1>
-  <div class="sub">Física III - ITBA. Resolución automática por leyes de Kirchhoff. Los valores se pueden editar.</div>
-</header>
+<div class="band"><div class="wrap">
+  <h1>Rectificadores de media onda y onda completa</h1>
+  <p class="sub">Simulador del TP Nº 4 de Física III. Elegí el circuito, el capacitor de filtrado y la carga, y mirá la salida en el osciloscopio. Los diodos del esquema se encienden cuando conducen.</p>
 
-<div class="panel">
-  <div class="grid">
-    <div class="field"><label for="r1">R₁ (Ω)</label><input id="r1" type="number" step="any" value="217"></div>
-    <div class="field"><label for="r2">R₂ (Ω)</label><input id="r2" type="number" step="any" value="97"></div>
-    <div class="field"><label for="r3">R₃ (Ω)</label><input id="r3" type="number" step="any" value="324"></div>
-    <div class="field"><label for="e1">ε₁ (V)</label><input id="e1" type="number" step="any" value="9"></div>
-    <div class="field"><label for="e2">ε₂ (V)</label><input id="e2" type="number" step="any" value="1.5"></div>
+  <div class="top">
+    <div>
+      <div class="scope">
+        <div class="screen"><canvas id="scr" aria-label="Pantalla del osciloscopio con la entrada y la salida del rectificador"></canvas></div>
+        <div class="scopebar">
+          <span class="tag c1">CH1 entrada · 5 V/div</span>
+          <span class="tag c2">CH2 salida · 5 V/div</span>
+          <span>4 ms/div</span>
+          <span id="tnow" style="margin-left:auto;font-variant-numeric:tabular-nums"></span>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ctl"><div class="lab">Circuito</div>
+        <div class="seg"><button id="mHalf" aria-pressed="true">Media onda</button><button id="mFull" aria-pressed="false">Onda completa</button></div></div>
+      <div class="ctl"><div class="lab">Capacitor de filtrado <output id="cOut"></output></div>
+        <div class="chips" id="chips"></div>
+        <input type="range" id="cR" min="0" max="1000" value="0" aria-label="Capacitancia, escala logarítmica de 10 a 4700 µF"></div>
+      <div class="ctl"><div class="lab">Resistencia de carga <output id="rOut"></output></div>
+        <input type="range" id="rR" min="20" max="500" step="1" value="100" aria-label="Resistencia de carga en ohm"></div>
+      <div class="ctl" style="display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center">
+        <label class="chk"><input type="checkbox" id="showIn" checked> Mostrar la entrada</label>
+        <button id="play" aria-pressed="true" style="margin-left:auto;padding:6px 14px">Pausar barrido</button>
+        <button id="reset" style="padding:6px 14px">Valores del TP</button>
+      </div>
+    </div>
   </div>
-  <div class="toggle">
-    <button id="bOrig" aria-pressed="true">Circuito original</button>
-    <button id="bInv" aria-pressed="false">Fuente ε₂ invertida</button>
+
+  <div class="reads" id="reads"></div>
+</div></div>
+
+<div class="band" style="background:var(--panel);border-block:1px solid var(--line)"><div class="wrap two">
+  <div class="circ">
+    <h2>Qué pasa en el circuito</h2>
+    <svg id="circ" viewBox="0 0 380 232" role="img" aria-label="Esquema del rectificador"></svg>
+    <p class="state" id="state"></p>
   </div>
-</div>
+  <div>
+    <h2>Comparación con lo medido</h2>
+    <div class="fig"><svg id="chart" role="img" aria-label="Rizado pico a pico en función de la capacitancia"></svg></div>
+    <p class="note">Curvas: rizado pico a pico que da el modelo con R = 100 Ω, en función de C (escala logarítmica). Puntos: lo que medimos en el laboratorio. El punto negro es la configuración elegida.</p>
+    <div id="cmp"></div>
+  </div>
+</div></div>
 
-<div class="figure">
-<svg viewBox="0 0 640 300" role="img" aria-label="Esquema del circuito">
-  <g stroke="var(--wire)" stroke-width="3" fill="none" stroke-linecap="square">
-    <!-- rama izquierda -->
-    <path d="M40 60 H140"/><path d="M200 60 H320"/>
-    <path d="M40 60 V115"/><path d="M40 185 V240"/>
-    <path d="M40 240 H600"/>
-    <!-- rama central -->
-    <path d="M320 60 V115"/><path d="M320 185 V240"/>
-    <!-- rama derecha -->
-    <path d="M320 60 H420"/><path d="M480 60 H600"/>
-    <path d="M600 60 V115"/><path d="M600 185 V240"/>
-  </g>
-  <!-- resistor R1 -->
-  <polyline points="140,60 148,48 164,72 180,48 196,72 200,60" fill="none" stroke="var(--wire)" stroke-width="3"/>
-  <!-- resistor R3 -->
-  <polyline points="420,60 428,48 444,72 460,48 476,72 480,60" fill="none" stroke="var(--wire)" stroke-width="3"/>
-  <!-- resistor R2 (vertical) -->
-  <polyline points="320,115 308,123 332,139 308,155 332,171 320,179" fill="none" stroke="var(--wire)" stroke-width="3"/>
-  <!-- pila 1 -->
-  <g stroke="var(--wire)" stroke-width="3">
-    <line x1="22" y1="128" x2="58" y2="128"/>
-    <line x1="32" y1="145" x2="48" y2="145"/>
-    <line x1="40" y1="145" x2="40" y2="185"/>
-  </g>
-  <text x="66" y="124" class="lbl" font-size="15" fill="var(--ink)">+</text>
-  <text x="66" y="152" font-size="15" fill="var(--ink)">−</text>
-  <text x="46" y="205" font-size="14" fill="var(--ink)" id="lblE1">ε₁ = 9 V</text>
-  <!-- pila 2 -->
-  <g id="bat2" stroke="var(--wire)" stroke-width="3">
-    <line id="b2long" x1="582" y1="128" x2="618" y2="128"/>
-    <line id="b2short" x1="592" y1="145" x2="608" y2="145"/>
-    <line x1="600" y1="145" x2="600" y2="185"/>
-  </g>
-  <text x="556" y="124" font-size="15" fill="var(--ink)" id="b2top">+</text>
-  <text x="556" y="152" font-size="15" fill="var(--ink)" id="b2bot">−</text>
-  <text x="520" y="205" font-size="14" fill="var(--ink)" id="lblE2">ε₂ = 1,5 V</text>
-  <!-- nodo a -->
-  <circle cx="320" cy="60" r="5" fill="var(--wire)"/>
-  <text x="328" y="52" font-size="14" fill="var(--ink)">a</text>
-  <!-- etiquetas de componentes -->
-  <text x="140" y="38" font-size="14" fill="var(--ink)" id="lblR1">R₁ = 217 Ω</text>
-  <text x="420" y="38" font-size="14" fill="var(--ink)" id="lblR3">R₃ = 324 Ω</text>
-  <text x="342" y="132" font-size="14" fill="var(--ink)" id="lblR2">R₂ = 97 Ω</text>
-  <!-- corrientes -->
-  <text x="148" y="86" font-size="14" fill="var(--accent)" id="lblI1">I₁</text>
-  <text x="448" y="86" font-size="14" fill="var(--accent)" id="lblI3">I₃</text>
-  <text x="268" y="146" font-size="14" fill="var(--accent)" text-anchor="end" id="lblI2">I₂</text>
-  <path id="arrI1" d="M104 80 h36" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
-  <path id="arrI3" d="M404 80 h36" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
-  <path id="arrI2" d="M280 122 v36" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#ah)"/>
-  <defs>
-    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/>
-    </marker>
-  </defs>
-</svg>
-</div>
-<div class="cap" id="cap">Circuito original: las dos fuentes se oponen.</div>
+<div class="band"><div class="wrap">
+  <h2>Cómo funciona el modelo</h2>
+  <p class="sub">La fuente es la que medimos: 12,96 V eficaces (18,3 V de pico) a 50 Hz. Cada diodo se modela como una caída fija de 0,7 V que solo deja pasar corriente en directa, en serie con la resistencia limitadora de 4,7 Ω. En el puente conducen dos diodos a la vez, así que la caída es de 1,4 V. La tensión del capacitor se integra paso a paso cada 10 µs:</p>
+  <div class="eq">Diodo conduce (e(t) &gt; v):   C·dv/dt = (e(t) − v)/4,7 Ω − v/R
+Diodo cortado:               C·dv/dt = −v/R          (descarga exponencial, τ = RC)
 
-<h2>Resultados</h2>
-<div class="panel">
-  <table>
-    <thead><tr><th>Rama</th><th>Corriente</th><th>Caída de tensión</th><th>Potencia disipada</th></tr></thead>
-    <tbody>
-      <tr><td>R₁</td><td class="n" id="i1"></td><td class="n" id="v1"></td><td class="n" id="p1"></td></tr>
-      <tr><td>R₂</td><td class="n" id="i2"></td><td class="n" id="v2"></td><td class="n" id="p2"></td></tr>
-      <tr><td>R₃</td><td class="n" id="i3"></td><td class="n" id="v3"></td><td class="n" id="p3"></td></tr>
-    </tbody>
-  </table>
-  <p class="note" id="nodo"></p>
-  <table style="margin-top:14px">
-    <thead><tr><th>Fuente</th><th>Potencia</th><th></th></tr></thead>
-    <tbody>
-      <tr><td>ε₁</td><td class="n" id="pe1"></td><td id="se1"></td></tr>
-      <tr><td>ε₂</td><td class="n" id="pe2"></td><td id="se2"></td></tr>
-    </tbody>
-  </table>
-  <p class="note" id="balance"></p>
-</div>
+media onda:     e(t) = 18,3·sin(ωt) − 0,7 V
+onda completa:  e(t) = 18,3·|sin(ωt)| − 1,4 V</div>
+  <details><summary>Qué calcula cada lectura</summary>
+    <p>El valor medio es el promedio de la salida en un período: es lo que marca el multímetro en escala de continua. El valor eficaz es la raíz del promedio de v². El rizado eficaz sale de V<sub>RMS</sub>² = v̄² + v<sub>rizado,RMS</sub>², y el factor de rizado es r = v<sub>rizado,RMS</sub>/v̄. La fracción de potencia en continua es v̄²/V<sub>RMS</sub>². Sin capacitor y con diodos ideales daría r = 1,21 y 40,5 % en media onda, y r = 0,48 y 81 % en onda completa.</p>
+    <p>Con 100 µF el modelo reproduce bien lo medido. Con 220 µF y 2200 µF el rizado medido es mayor que el del modelo con el valor nominal. Es lo esperable si la capacitancia real de esos electrolíticos es menor que la que tienen impresa, por tolerancia y envejecimiento. Probá mover el control de C por debajo del valor nominal y mirá cómo la curva se acerca a los puntos medidos.</p>
+  </details>
+</div></div>
 
-<h2>Cómo se resuelve</h2>
-<div class="panel">
-  <div class="eq" id="ecs"></div>
-  <p class="note">Tomando el nudo inferior como referencia, la tensión del nudo a queda determinada por una sola ecuación, y de ahí salen las tres corrientes. El signo de ε₂ cambia al invertir la fuente.</p>
-</div>
-
-<footer>
-  Página auxiliar del Informe del TP N°2 - Circuitos de corriente continua. Grupo N°2.
-</footer>
-</div>
+<footer class="band"><div class="wrap">Trabajo Práctico Nº 4 · Circuitos rectificadores · Física III · Grupo Nº 2: Petrikovich, Arecco, Ruijgt, Novillo y Silveyra.</div></footer>
 
 <script>
-(function(){
-  var inv = false;
-  var $ = function(id){ return document.getElementById(id); };
-  var f1 = function(x,d){ return x.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d}); };
+{
+const F=50,T=1/F,VS=12.96*Math.SQRT2,RS=4.7,VD=0.7,DT=1e-5,WIN=2*T,M=Math.round(WIN/DT);
+const PRESETS=[0,100,220,2200];
+const MEAS={half:{0:{vp:17.0,mean:5.30,src:'multímetro'},100:{pp:12.4,mean:9.74,src:'multímetro'},220:{pp:10.2,mean:10.87,src:'multímetro'},2200:{pp:1.8,mean:13.10,src:'multímetro'}},
+            full:{0:{vp:16.4,mean:null},100:{pp:7.4,mean:12.1,src:'cursores'},220:{pp:6.2,mean:12.9,src:'cursores'},2200:{pp:0.64,mean:14.2,src:'cursores'}}};
+const st={full:false,C:0,R:100,showIn:true,play:true,tau:0};
+const $=id=>document.getElementById(id);
+const fmt=(x,d=2)=>x.toFixed(d).replace('.',',');
 
-  function calc(){
-    var R1=parseFloat($('r1').value), R2=parseFloat($('r2').value), R3=parseFloat($('r3').value);
-    var E1=parseFloat($('e1').value), E2=parseFloat($('e2').value);
-    if(!(R1>0&&R2>0&&R3>0)||isNaN(E1)||isNaN(E2)) return;
-    var s = inv ? -1 : 1;                 // signo de eps2 (+ arriba => s = +1)
-    var Va = (E1/R1 + s*E2/R3) / (1/R1 + 1/R2 + 1/R3);
-    var I1 = (E1-Va)/R1, I2 = Va/R2, I3 = (Va - s*E2)/R3;
-    var Pd = [I1*I1*R1, I2*I2*R2, I3*I3*R3];
-    var Pe1 = E1*I1;                      // entregada por eps1
-    var Pe2 = -s*E2*I3;                   // >0 entrega, <0 absorbe
-
-    var mA = function(x){ return f1(x*1000,2)+' mA'; };
-    $('i1').textContent = mA(I1); $('i2').textContent = mA(I2); $('i3').textContent = mA(I3);
-    $('v1').textContent = f1(I1*R1,3)+' V';
-    $('v2').textContent = f1(I2*R2,3)+' V';
-    $('v3').textContent = f1(I3*R3,3)+' V';
-    $('p1').textContent = f1(Pd[0]*1000,1)+' mW';
-    $('p2').textContent = f1(Pd[1]*1000,1)+' mW';
-    $('p3').textContent = f1(Pd[2]*1000,1)+' mW';
-    $('pe1').textContent = f1(Math.abs(Pe1)*1000,2)+' mW';
-    $('pe2').textContent = f1(Math.abs(Pe2)*1000,2)+' mW';
-    $('se1').textContent = Pe1>=0 ? 'entrega' : 'absorbe';
-    $('se2').textContent = Pe2>=0 ? 'entrega' : 'absorbe';
-    $('nodo').textContent = 'Ley de los nudos: I₂ + I₃ = '+f1((I2+I3)*1000,2)+' mA = I₁.';
-    $('balance').textContent = 'Balance de energía: potencia neta de las fuentes = '
-      + f1((Pe1+Pe2)*1000,1) + ' mW; potencia disipada en las resistencias = '
-      + f1((Pd[0]+Pd[1]+Pd[2])*1000,1) + ' mW.';
-
-    $('lblR1').textContent = 'R₁ = '+f1(R1,0)+' Ω';
-    $('lblR2').textContent = 'R₂ = '+f1(R2,0)+' Ω';
-    $('lblR3').textContent = 'R₃ = '+f1(R3,0)+' Ω';
-    $('lblE1').textContent = 'ε₁ = '+f1(E1,2)+' V';
-    $('lblE2').textContent = 'ε₂ = '+f1(E2,2)+' V';
-    $('lblI1').textContent = 'I₁ = '+mA(I1);
-    $('lblI2').textContent = 'I₂ = '+mA(I2);
-    $('lblI3').textContent = 'I₃ = '+mA(I3);
-    // si una corriente sale negativa, el sentido real es el opuesto al dibujado
-    flip('arrI1', I1<0, 'M104 80 h36', 'M140 80 h-36');
-    flip('arrI2', I2<0, 'M280 122 v36', 'M280 158 v-36');
-    flip('arrI3', I3<0, 'M404 80 h36', 'M440 80 h-36');
-
-    $('b2top').textContent = inv ? '−' : '+';
-    $('b2bot').textContent = inv ? '+' : '−';
-    $('b2long').setAttribute('x1', inv?592:582); $('b2long').setAttribute('x2', inv?608:618);
-    $('b2short').setAttribute('x1', inv?582:592); $('b2short').setAttribute('x2', inv?618:608);
-    $('cap').textContent = inv
-      ? 'Fuente ε₂ invertida: las dos fuentes impulsan la corriente en el mismo sentido.'
-      : 'Circuito original: las dos fuentes se oponen.';
-
-    $('ecs').textContent =
-      'Nudo a:    I₁ = I₂ + I₃\n' +
-      'Malla 1:   ε₁ − I₁·R₁ − I₂·R₂ = 0\n' +
-      'Malla 2:   I₂·R₂ − I₃·R₃ ' + (inv ? '+' : '−') + ' ε₂ = 0\n\n' +
-      'Vₐ = (ε₁/R₁ ' + (inv ? '−' : '+') + ' ε₂/R₃) / (1/R₁ + 1/R₂ + 1/R₃) = ' + f1(Va,4) + ' V\n' +
-      'I₁ = (ε₁ − Vₐ)/R₁ = ' + mA(I1) + '\n' +
-      'I₂ = Vₐ/R₂ = ' + mA(I2) + '\n' +
-      'I₃ = (Vₐ ' + (inv ? '+' : '−') + ' ε₂)/R₃ = ' + mA(I3);
+function run(full,Cuf,R,keep=true){
+  const C=Cuf*1e-6,n=full?2:1,per=C>0?16:2,N=Math.round(per*T/DT),start=N-M;
+  let x=Math.max(VS-n*VD,0)*R/(R+RS);
+  const vin=keep?new Float32Array(M):null,vout=new Float32Array(M),cond=keep?new Int8Array(M):null;
+  for(let k=0;k<N;k++){
+    const s=VS*Math.sin(2*Math.PI*F*k*DT),e=(full?Math.abs(s):s)-n*VD;let c=0;
+    if(C===0){x=e>0?e*R/(R+RS):0;c=e>0?(s>=0?1:2):0}
+    else if(e>x){x=(x+DT/C*e/RS)/(1+DT/C*(1/R+1/RS));c=s>=0?1:2}
+    else x=x/(1+DT/(C*R));
+    if(k>=start){const j=k-start;vout[j]=x;if(keep){vin[j]=s;cond[j]=c}}
   }
+  let sum=0,sq=0,mx=-1e9,mn=1e9;for(const v of vout){sum+=v;sq+=v*v;if(v>mx)mx=v;if(v<mn)mn=v}
+  const mean=sum/M,rms=Math.sqrt(sq/M),rr=Math.sqrt(Math.max(rms*rms-mean*mean,0));
+  return{vin,vout,cond,mean,rms,pp:mx-mn,max:mx,min:mn,r:rr/mean,eta:mean*mean/(rms*rms)};
+}
 
-  function flip(id, cond, a, b){ $(id).setAttribute('d', cond ? b : a); }
+// ---------- controles ----------
+const sl2C=v=>v<=0?0:Math.round(10*Math.pow(470,v/1000));
+const C2sl=c=>c<=0?0:Math.round(1000*Math.log(c/10)/Math.log(470));
+$('chips').innerHTML=PRESETS.map(c=>`<button data-c="${c}">${c?c+' µF':'Sin C'}</button>`).join('');
+let res;
+function setC(c){st.C=c;$('cR').value=C2sl(c);update()}
+$('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setC(+b.dataset.c)});
+$('cR').addEventListener('input',e=>{st.C=sl2C(+e.target.value);update()});
+$('rR').addEventListener('input',e=>{st.R=+e.target.value;update()});
+$('mHalf').addEventListener('click',()=>{st.full=false;update()});
+$('mFull').addEventListener('click',()=>{st.full=true;update()});
+$('showIn').addEventListener('change',e=>{st.showIn=e.target.checked;drawScope()});
+$('play').addEventListener('click',()=>{st.play=!st.play;$('play').setAttribute('aria-pressed',st.play);$('play').textContent=st.play?'Pausar barrido':'Reanudar barrido';if(st.play){last=0;requestAnimationFrame(loop)}});
+$('reset').addEventListener('click',()=>{st.R=100;$('rR').value=100;setC(0)});
 
-  ['r1','r2','r3','e1','e2'].forEach(function(id){
-    $(id).addEventListener('input', calc);
-  });
-  $('bOrig').addEventListener('click', function(){
-    inv=false; $('bOrig').setAttribute('aria-pressed','true'); $('bInv').setAttribute('aria-pressed','false'); calc();
-  });
-  $('bInv').addEventListener('click', function(){
-    inv=true; $('bInv').setAttribute('aria-pressed','true'); $('bOrig').setAttribute('aria-pressed','false'); calc();
-  });
-  calc();
-})();
+// ---------- osciloscopio ----------
+const cv=$('scr'),ctx=cv.getContext('2d');
+function drawScope(){
+  const dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;if(!W)return;
+  if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#1d3a30';ctx.lineWidth=1;
+  for(let i=1;i<10;i++){const x=Math.round(i*W/10)+.5;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let i=1;i<8;i++){const y=Math.round(i*H/8)+.5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  ctx.strokeStyle='#2f5a4a';ctx.beginPath();ctx.moveTo(0,H/2+.5);ctx.lineTo(W,H/2+.5);ctx.moveTo(W/2+.5,0);ctx.lineTo(W/2+.5,H);ctx.stroke();
+  const Y=v=>H/2-v/20*(H/2),X=j=>j/(M-1)*W,step=Math.max(1,Math.floor(M/(W*2)));
+  const trace=(arr,col,w)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();for(let j=0;j<M;j+=step){const x=X(j),y=Y(arr[j]);j?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke()};
+  ctx.shadowBlur=6;
+  if(st.showIn){ctx.shadowColor='#f2d20f';ctx.globalAlpha=.75;trace(res.vin,'#f2d20f',1.6);ctx.globalAlpha=1}
+  ctx.shadowColor='#37c8f0';trace(res.vout,'#37c8f0',2.4);ctx.shadowBlur=0;
+  ctx.setLineDash([6,5]);ctx.strokeStyle='rgba(55,200,240,.7)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(0,Y(res.mean));ctx.lineTo(W,Y(res.mean));ctx.stroke();ctx.setLineDash([]);
+  ctx.font='600 12px Inter,sans-serif';{const t='valor medio '+fmt(res.mean)+' V',w=ctx.measureText(t).width,ly=Y(res.mean)>28?Y(res.mean)-8:Y(res.mean)+18;ctx.fillStyle='rgba(7,16,13,.85)';ctx.fillRect(W-w-14,ly-12,w+8,16);ctx.fillStyle='#37c8f0';ctx.fillText(t,W-w-10,ly)}
+  const j=Math.min(M-1,Math.floor(st.tau*M)),x=X(j);
+  ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,Y(res.vout[j]),4,0,7);ctx.fill();
+  if(st.showIn){ctx.fillStyle='#f2d20f';ctx.beginPath();ctx.arc(x,Y(res.vin[j]),3,0,7);ctx.fill()}
+  
+  $('tnow').textContent='t = '+fmt(st.tau*WIN*1000,1)+' ms · salida '+fmt(res.vout[j])+' V';
+  drawCirc(res.cond[j]);
+}
+
+// ---------- circuito ----------
+const svg=$('circ');
+function diode(a,c,id){const mx=(a[0]+c[0])/2,my=(a[1]+c[1])/2,L=Math.hypot(c[0]-a[0],c[1]-a[1]),u=[(c[0]-a[0])/L,(c[1]-a[1])/L],n=[-u[1],u[0]],s=8;
+  const p=(k,m)=>`${mx+u[0]*k+n[0]*m},${my+u[1]*k+n[1]*m}`;
+  return `<g id="${id}" class="d"><polygon points="${p(-s,s)} ${p(-s,-s)} ${p(s,0)}"/><line x1="${mx+u[0]*s+n[0]*s}" y1="${my+u[1]*s+n[1]*s}" x2="${mx+u[0]*s-n[0]*s}" y2="${my+u[1]*s-n[1]*s}" stroke-width="2.5"/></g>`}
+const zig=(x,y1,y2)=>{let d=`M${x} ${y1}`;const n=6,h=(y2-y1)/n;for(let i=0;i<n;i++)d+=` L${x+(i%2?-7:7)} ${y1+h*(i+.5)}`;return d+` L${x} ${y2}`};
+function buildCirc(){
+  const full=st.full;let s=`<g fill="none" stroke="var(--wire)" stroke-width="2" stroke-linejoin="round">`;
+  s+=`<circle cx="45" cy="125" r="18"/><path d="M33 125 q6 -12 12 0 t12 0"/>`;
+  s+=`<path d="M45 107 V55 H72"/><path d="M72 55 l3 -6 l6 12 l6 -12 l6 12 l6 -12 l3 6"/>`;
+  if(!full){s+=`<path d="M102 55 H340"/><path d="M45 143 V195 H340"/>`}
+  else{s+=`<path d="M102 55 H185 V75"/><path d="M185 75 L225 115 L185 155 L145 115 Z"/>`;
+       s+=`<path d="M45 143 V175 H114 a6 6 0 0 1 12 0 H185 V155"/><path d="M145 115 H120 V195 H340"/><path d="M225 115 H250 V55 H340"/>`}
+  s+=`<g id="cap"><path d="M285 55 V117 M271 117 H299 M285 127 V195"/><path d="M271 129 q14 -6 28 0"/></g>`;
+  s+=`<path d="M340 55 V95"/><path d="${zig(340,95,155)}"/><path d="M340 155 V195"/></g>`;
+  s+=`<g fill="var(--wire)" stroke="var(--wire)">`+(full?diode([185,75],[225,115],'d1')+diode([185,155],[225,115],'d2')+diode([145,115],[185,75],'d3')+diode([145,115],[185,155],'d4'):diode([140,55],[176,55],'d1'))+`</g>`;
+  s+=`<g font-size="13" fill="var(--muted)" font-family="Inter,sans-serif">`;
+  s+=`<text x="87" y="42" text-anchor="middle">4,7 Ω</text><text x="45" y="225" text-anchor="middle">12,96 V · 50 Hz</text>`;
+  s+=full?`<text x="214" y="84">D1</text><text x="214" y="154">D2</text><text x="156" y="84" text-anchor="end">D3</text><text x="156" y="154" text-anchor="end">D4</text>`:`<text x="158" y="40" text-anchor="middle">D</text>`;
+  s+=`<text id="capl" x="266" y="112" text-anchor="end">C</text><text x="352" y="129">R</text><text x="352" y="70">+</text><text x="352" y="190">−</text></g>`;
+  svg.innerHTML=s;
+}
+function drawCirc(c){
+  const on=st.full?(c===1?['d1','d4']:c===2?['d2','d3']:[]):(c?['d1']:[]);
+  for(const g of svg.querySelectorAll('.d')){const lit=on.includes(g.id);g.setAttribute('fill',lit?'var(--red)':'var(--wire)');g.setAttribute('stroke',lit?'var(--red)':'var(--wire)');g.style.filter=lit?'drop-shadow(0 0 4px var(--red))':''}
+  const has=st.C>0;$('cap').style.opacity=has?1:.15;$('capl').style.opacity=has?1:.3;
+  const names=st.full?(c===1?'D1 y D4 conducen':'D2 y D3 conducen'):'El diodo conduce';
+  $('state').textContent=c?(has?`${names}: la fuente recarga el capacitor y alimenta la carga.`:`${names}: la salida sigue a la entrada, menos la caída en los diodos y en la resistencia de 4,7 Ω.`)
+    :(has?'Diodos cortados: el capacitor se descarga sobre R y sostiene la tensión de salida.':'Diodos cortados: no circula corriente y la salida es nula.');
+}
+
+// ---------- lecturas ----------
+function drawReads(){
+  const items=[[fmt(res.mean)+' V','Valor medio (lo que marca el multímetro)'],[fmt(res.pp)+' V',st.C?'Rizado pico a pico':'Amplitud cero a pico'],[fmt(res.rms)+' V','Valor eficaz'],
+    [fmt(res.r),'Factor de rizado r'],[fmt(res.eta*100,1)+' %','Potencia en continua'],[(st.full?100:50)+' Hz','Frecuencia del rizado']];
+  $('reads').innerHTML=items.map(([v,l])=>`<div class="read"><b>${v}</b><span>${l}</span></div>`).join('');
+}
+
+// ---------- comparación ----------
+const CS=[];for(let i=0;i<=36;i++)CS.push(10*Math.pow(500,i/36));
+const curve={half:CS.map(c=>run(false,c,100,false).pp),full:CS.map(c=>run(true,c,100,false).pp)};
+const chart=$('chart');
+function drawChart(){
+  const W=chart.clientWidth,H=chart.clientHeight;if(!W)return;const sm=W<520;
+  const L=sm?34:44,Rm=sm?10:16,Tm=12,B=34,X=c=>L+Math.log(c/10)/Math.log(500)*(W-L-Rm),Y=v=>Tm+(1-v/18)*(H-Tm-B);
+  let s='';
+  for(const v of [0,3,6,9,12,15,18])s+=`<line x1="${L}" x2="${W-Rm}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="12" fill="var(--muted)">${v}</text>`;
+  for(const c of (sm?[10,100,1000]:[10,22,47,100,220,470,1000,2200,4700]))s+=`<text x="${X(c)}" y="${H-B+18}" text-anchor="middle" font-size="12" fill="var(--muted)">${c}</text>`;
+  s+=`<text x="${(L+W-Rm)/2}" y="${H-2}" text-anchor="middle" font-size="12" fill="var(--muted)">C [µF]</text><text x="4" y="${Tm+2}" font-size="12" fill="var(--muted)" dominant-baseline="hanging">V</text>`;
+  for(const k of ['half','full']){const col=k==='half'?'var(--hw)':'var(--fw)';
+    s+=`<polyline fill="none" stroke="${col}" stroke-width="2.5" points="${CS.map((c,i)=>X(c)+','+Y(curve[k][i])).join(' ')}"/>`;
+    for(const c of [100,220,2200]){const m=MEAS[k][c];s+=k==='half'?`<circle cx="${X(c)}" cy="${Y(m.pp)}" r="6" fill="var(--panel)" stroke="${col}" stroke-width="2.5"/>`:`<rect x="${X(c)-5.5}" y="${Y(m.pp)-5.5}" width="11" height="11" fill="var(--panel)" stroke="${col}" stroke-width="2.5"/>`}}
+  s+=`<text x="${W-Rm}" y="${Y(14)}" text-anchor="end" font-size="13" font-weight="600" fill="var(--hw)">● Media onda</text><text x="${W-Rm}" y="${Y(14)+20}" text-anchor="end" font-size="13" font-weight="600" fill="var(--fw)">■ Onda completa</text>`;
+  if(st.C>=10&&st.R===100)s+=`<circle cx="${X(Math.min(st.C,5000))}" cy="${Y(Math.min(res.pp,18))}" r="5" fill="var(--ink)"/>`;
+  chart.innerHTML=s;
+}
+const ro=new ResizeObserver(()=>{drawChart();drawScope()});ro.observe(chart);ro.observe(cv);
+function drawCmp(){
+  const m=MEAS[st.full?'full':'half'][st.C];
+  if(!m||st.R!==100){$('cmp').innerHTML=`<p class="note">Para comparar con el laboratorio elegí sin capacitor, 100, 220 o 2200 µF y dejá R = 100 Ω.</p>`;return}
+  const rows=st.C===0?[['Amplitud cero a pico',res.pp,m.vp,''],['Valor medio',res.mean,m.mean,m.src?'(multímetro)':'']]:[['Rizado pico a pico',res.pp,m.pp,'(cursores)'],['Valor medio',res.mean,m.mean,'('+m.src+')']];
+  $('cmp').innerHTML=`<table><thead><tr><th>${st.full?'Onda completa':'Media onda'}, ${st.C?st.C+' µF':'sin capacitor'}</th><th>Modelo</th><th>Medido</th></tr></thead><tbody>`+
+    rows.map(([n,a,b,src])=>`<tr><td>${n} <span class="note">${b==null?'':src}</span></td><td>${fmt(a)} V</td><td>${b==null?'sin medición':fmt(b)+' V'}</td></tr>`).join('')+`</tbody></table>`;
+}
+
+function update(){
+  res=run(st.full,st.C,st.R);
+  $('mHalf').setAttribute('aria-pressed',!st.full);$('mFull').setAttribute('aria-pressed',st.full);
+  for(const b of $('chips').children)b.setAttribute('aria-pressed',+b.dataset.c===st.C);
+  $('cOut').textContent=st.C?st.C+' µF':'sin capacitor';$('rOut').textContent=st.R+' Ω';
+  buildCirc();drawReads();drawScope();drawChart();drawCmp();
+}
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let last=0;
+function loop(ts){if(!st.play)return;if(last&&ts)st.tau=(st.tau+(ts-last)/5000)%1;last=ts||0;drawScope();requestAnimationFrame(loop)}
+if(still){st.play=false;st.tau=.3;$('play').setAttribute('aria-pressed','false');$('play').textContent='Reanudar barrido'}
+update();if(st.play)requestAnimationFrame(loop);
+}
 </script>
 </body>
 </html>
